@@ -35,7 +35,6 @@ For the total number of steps taken by day
 library(plyr)
 library(dplyr)
 dailySteps <- print(summarize(group_by(filter(actData, !is.na(steps)), date), dailySteps = sum(steps)))
-
 ```
 
 The histogram for the total daily steps
@@ -81,7 +80,7 @@ print(totMissingSteps + totMissingDates + totMissingIntervals)
 Note There are only missing values in the **steps** coloumn 
 
 
-I'll use the mean of the total number of steps to fill in the NA value's places 
+####I'll use the mean of the total number of steps in an interval to fill in the NA value's places 
 
 ```{r}
 newData <- mutate(group_by(actData, interval), steps = ifelse(is.na(steps), 
@@ -89,6 +88,75 @@ newData <- mutate(group_by(actData, interval), steps = ifelse(is.na(steps),
 head(newData)
 ```
 
+I'll get the new steps in a separate variable 
+```{r}
+newSteps <- print(summarize(group_by(newData, date), newSteps = sum(steps)))
+```
 
+Histogram for the new values
+
+```{r}
+ggplot(newSteps, aes(x=date, y=newSteps)) + 
+        geom_histogram(stat="identity", colour = "black", fill = "red") +
+        xlab("Days") + ylab("New Number of Steps") + 
+        labs(title= "The New total number of steps per day") 
+```
+
+The mean of the new days
+```{r}
+newDailySteps <- tapply(newData$steps, newData$date, FUN = sum)
+averageNewDailySteps <- mean(newDailySteps)
+head(averageNewDailySteps)
+```
+
+The median of the new days
+```{r}
+medianNewDailySteps <- median(newDailySteps)
+head(medianNewDailySteps)
+```
+
+#### We can notice from the results that both the mean and median differ now from the initial estimates, and we can prove it
+
+```{r}
+mean   (totSteps)   == mean   (newDailySteps)
+median (totSteps)   == median (newDailySteps)
+```
+
+#### We can show the impact of the imputed data using the summary subtraction of both cases [before/after] imputing the data
+
+```{r}
+summary(newDailySteps) - summary(totSteps)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+#### Creating a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+```{r}
+newData$whatDay <- as.factor(ifelse(weekdays(as.Date(newData$date)) %in% c("Saturday", "Sunday"), "weekend", "normalDay"))
+summary(newData$whatDay)
+```
+
+
+####Plotting the average number of steps/interval for both of weekdays and weekends 
+```{r}
+for (type in c("weekend", "normalDay")) {
+    whatStep <- aggregate(steps ~ interval, data = newData, 
+                            subset = newData$whatDay == type, FUN = mean)
+    plot(whatStep, type = "l", main = type)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

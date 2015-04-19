@@ -176,7 +176,7 @@ print(totMissingSteps + totMissingDates + totMissingIntervals)
 Note There are only missing values in the **steps** coloumn 
 
 
-I'll use the mean of the total number of steps to fill in the NA value' places 
+####I'll use the mean of the total number of steps in an interval to fill in the NA value's places 
 
 
 ```r
@@ -198,6 +198,133 @@ head(newData)
 ## 6 2.0943396 2012-10-01       25
 ```
 
+I'll get the new steps in a separate variable 
 
+```r
+newSteps <- print(summarize(group_by(newData, date), newSteps = sum(steps)))
+```
+
+```
+## Source: local data frame [61 x 2]
+## 
+##          date newSteps
+## 1  2012-10-01 10766.19
+## 2  2012-10-02   126.00
+## 3  2012-10-03 11352.00
+## 4  2012-10-04 12116.00
+## 5  2012-10-05 13294.00
+## 6  2012-10-06 15420.00
+## 7  2012-10-07 11015.00
+## 8  2012-10-08 10766.19
+## 9  2012-10-09 12811.00
+## 10 2012-10-10  9900.00
+## ..        ...      ...
+```
+
+Histogram for the new values
+
+
+```r
+ggplot(newSteps, aes(x=date, y=newSteps)) + 
+        geom_histogram(stat="identity", colour = "black", fill = "red") +
+        xlab("Days") + ylab("New Number of Steps") + 
+        labs(title= "The New total number of steps per day") 
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+The mean of the new days
+
+```r
+newDailySteps <- tapply(newData$steps, newData$date, FUN = sum)
+averageNewDailySteps <- mean(newDailySteps)
+head(averageNewDailySteps)
+```
+
+```
+## [1] 10766.19
+```
+
+The median of the new days
+
+```r
+medianNewDailySteps <- median(newDailySteps)
+head(medianNewDailySteps)
+```
+
+```
+## [1] 10766.19
+```
+
+#### We can notice from the results that both the mean and median differ now from the initial estimates, and we can prove it
+
+
+```r
+mean   (totSteps)   == mean   (newDailySteps)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+median (totSteps)   == median (newDailySteps)
+```
+
+```
+## [1] FALSE
+```
+
+#### We can show the impact of the imputed data using the summary subtraction of both cases [before/after] imputing the data
+
+
+```r
+summary(newDailySteps) - summary(totSteps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    3041     370    1416       0       0
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+#### Creating a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+
+```r
+newData$whatDay <- as.factor(ifelse(weekdays(as.Date(newData$date)) %in% c("Saturday", "Sunday"), "weekend", "normalDay"))
+summary(newData$whatDay)
+```
+
+```
+## normalDay   weekend 
+##     12960      4608
+```
+
+
+####Plotting the average number of steps/interval for both of weekdays and weekends 
+
+```r
+for (type in c("weekend", "normalDay")) {
+    whatStep <- aggregate(steps ~ interval, data = newData, 
+                            subset = newData$whatDay == type, FUN = mean)
+    plot(whatStep, type = "l", main = type)
+}
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-19-1.png) ![](PA1_template_files/figure-html/unnamed-chunk-19-2.png) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
