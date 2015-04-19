@@ -79,8 +79,7 @@ library(dplyr)
 ```
 
 ```r
-steps <- summarize(group_by(filter(actData, !is.na(steps)), date), steps = sum(steps))
-print(steps)
+steps <- print(summarize(group_by(filter(actData, !is.na(steps)), date), steps = sum(steps)))
 ```
 
 ```
@@ -104,9 +103,16 @@ The histogram for the average daily activity
 
 
 ```r
-#st <- gsub(",", "", as.list(steps[2]))
-#hist(as.numeric(st))
+library(ggplot2)
+ggplot(steps, aes(x=date, y=steps)) + 
+        geom_histogram(stat="identity", colour = "black", fill = "green") +
+#        geom_vline(aes(xintercept=mean(, na.rm=T)),   # Ignore NA values for mean
+#               color="red", linetype="dashed", size=1) +
+        xlab("Dates") + ylab("Steps") + 
+        labs(title= "Total numbers of Steps per day")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
 
 
 
