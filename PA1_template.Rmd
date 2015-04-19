@@ -34,26 +34,60 @@ For the total number of steps taken by day
 ```{r}
 library(plyr)
 library(dplyr)
-steps <- print(summarize(group_by(filter(actData, !is.na(steps)), date), steps = sum(steps)))
+dailySteps <- print(summarize(group_by(filter(actData, !is.na(steps)), date), dailySteps = sum(steps)))
 
 ```
-## What is the average daily activity pattern?
-The histogram for the average daily activity
+
+The histogram for the total daily steps
 
 ```{r}
 library(ggplot2)
-ggplot(steps, aes(x=date, y=steps)) + 
+ggplot(dailySteps, aes(x=date, y=dailySteps)) + 
         geom_histogram(stat="identity", colour = "black", fill = "green") +
-#        geom_vline(aes(xintercept=mean(, na.rm=T)),   # Ignore NA values for mean
-#               color="red", linetype="dashed", size=1) +
-        xlab("Dates") + ylab("Steps") + 
-        labs(title= "Total numbers of Steps per day")
-       
+        xlab("Days") + ylab("Number of Steps") + 
+        labs(title= "Total number of steps per day") 
 ```
 
 
 
+## What is the average daily activity pattern?
+Calculating the average number of steps in each interval
+
+```{r}
+intervalAvgSteps <- print(summarize(group_by(filter(actData, !is.na(steps)), interval), intervalAvgSteps = mean(steps)))
+```
+
+The time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r}
+plot(intervalAvgSteps, type = "l", xlab = "The 5-minute Intervals", ylab = "Avg. number of steps", main = "The average number of steps across all days")
+```
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+actData$interval[max(intervalAvgSteps[2])]
+```
+
+
 ## Imputing missing values
+Calculating the total number of missing values for all the coloumns
+```{r}
+totMissingSteps       <- sum(is.na(actData$steps))
+totMissingDates       <- sum(is.na(actData$date))
+totMissingIntervals   <- sum(is.na(actData$interval))
+print(totMissingSteps + totMissingDates + totMissingIntervals)
+```
+Note There are only missing values in the **steps** coloumn 
+
+
+I'll use the mean of the total number of steps to fill in the NA value's places 
+
+```{r}
+newData <- mutate(group_by(actData, interval), steps = ifelse(is.na(steps), 
+                                           mean(steps, na.rm=TRUE), steps))
+head(newData)
+```
 
 
 
